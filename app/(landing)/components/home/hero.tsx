@@ -23,9 +23,9 @@ const HeroSection = () => {
 
           {/* Bagian Button */}
           <div className="flex gap-5 mt-14">
-            <Button size="normal" variant="primary">
-              Explore More <FiFastForward />
-            </Button>
+            <Button size="normal" className="bg-orange-500 text-white p-4">
+  Explore More
+</Button>
             
             <Button size="normal" variant="ghost">
               Watch Video

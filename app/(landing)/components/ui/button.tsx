@@ -1,28 +1,43 @@
+"use client";
+
+import React from "react";
+
 type TButtonProps = {
-    children: React.ReactNode;
-    className?: string;
-    variant?: "primary" | "dark" | "ghost";
-    size: "normal" | "small";
+  children: React.ReactNode;
+  className?: string;
+  variant?: "primary" | "dark" | "ghost";
+  size?: "normal" | "small"; // Ditambah '?' agar tidak wajib (optional)
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-const Button = ({children, className, variant ="primary", size = "normal", ...props}: TButtonProps ) => {
-    const baseStyle = "inline-flex gap-2 duration-300 justify-center items-center cursor-pointer hover:scale-105"
-    
-    const variants = {
-        primary: 'bg-red-500 text-white hover:bg-red-500/85',
-        dark: 'bg-dark text-white hover:bg-dark/85',
-        ghost: 'bg-transparent hover:bg-gray-100 text-dark',  
+const Button = ({
+  children,
+  className = "",
+  variant = "primary",
+  size = "normal",
+  ...props
+}: TButtonProps) => {
+  const baseStyle =
+    "inline-flex gap-2 duration-300 justify-center items-center cursor-pointer hover:scale-105 transition-all";
 
-    };
+  const variants = {
+    primary: "bg-primary text-white hover:bg-primary/85",
+    dark: "bg-dark text-white hover:bg-dark/85",
+    ghost: "bg-transparent hover:bg-gray-100 text-dark",
+  };
 
-    const sizes = {
-        normal: "py-4 px-9",
-        small: "py-[10px] px-7"
-    };
+  const sizes = {
+    normal: "py-4 px-9",
+    small: "py-[10px] px-7",
+  };
 
-    return (
-       <button className={`${baseStyle} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>{children}</button>
-    )
+  return (
+    <button
+      className={`${baseStyle} ${variants[variant]} ${sizes[size]} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
 };
 
 export default Button;

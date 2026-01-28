@@ -1,87 +1,146 @@
-import priceFormatter from "@/app/utils/price-formatter";
+import Button from "@/app/(landing)/components/ui/button";
+import Modal from "../ui/modal";
+import ImageUploadPreview from "../ui/image-upload-preview";
+import { useState } from "react";
 import Image from "next/image";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import priceFormatter from "@/app/utils/price-formatter";
+import { FiCheck, FiX } from "react-icons/fi";
+import { Transaction } from "@/app/types";
+import { getImageUrl } from "@/app/lib/api";
 
-const productData = [
-  {
-    name: "SportOn Product 1",
-    imageUrl: "/images/products/product-1.png",
-    category: "Running",
-    price: 289000,
-    stock: 3,
-  },
-  {
-    name: "SportOn Product 2",
-    imageUrl: "/images/products/product-2.png",
-    category: "Running",
-    price: 229000,
-    stock: 5,
-  },
-  {
-    name: "SportOn Product 3",
-    imageUrl: "/images/products/product-3.png",
-    category: "Running",
-    price: 350000,
-    stock: 10,
-  },
-];
+type TTransactionModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  transaction: Transaction | null;
+  onStatusChange: (id: string, status: "paid" | "rejected") => Promise<void>;
+};
 
-const ProductTable = () => {
+const TransactionModal = ({
+  isOpen,
+  onClose,
+  transaction,
+  onStatusChange,
+}: TTransactionModalProps) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  if (!transaction) return;
+
+  const handleStatusUpdate = async (status: "paid" | "rejected") => {
+    setIsUpdating(true);
+    try {
+      await onStatusChange(transaction._id, status);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200">
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="px-6 py-4 font-semibold">Product</th>
-            <th className="px-6 py-4 font-semibold">Category</th>
-            <th className="px-6 py-4 font-semibold">Price</th>
-            <th className="px-6 py-4 font-semibold">Stock</th>
-            <th className="px-6 py-4 font-semibold">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {productData.map((data, index) => (
-            <tr
-              key={index}
-              className="border-b border-gray-200 last:border-b-0"
-            >
-              <td className="px-6 py-4 font-medium">
-                <div className="flex gap-2 items-center">
-                  <div className="aspect-square bg-gray-100 rounded-md">
-                    <Image
-                      src={data.imageUrl}
-                      width={52}
-                      height={52}
-                      alt={data.name}
-                      className="aspect-square object-contain"
-                    />
-                  </div>
-                  <span>{data.name}</span>
+    <Modal isOpen={isOpen} onClose={onClose} title="Verify Transactions">
+      <div className="flex gap-6">
+        <div className="min-w-50">
+          <h4 className="font-semibold text-sm mb-2">Payment Proof</h4>
+          {transaction.paymentProof ? (
+            <Image
+              src={getImageUrl(transaction.paymentProof)}
+              alt="payment proof"
+              width={200}
+              height={401}
+            />
+          ) : (
+            <div className="text-center p-4">
+              <p className="text-sm">No Payment proof uploaded</p>
+            </div>
+          )}
+        </div>
+        <div className="w-full">
+          <h4 className="font-semibold text-sm mb-2">Order Details</h4>
+          <div className="bg-gray-100 rounded-md flex flex-col gap-2.5 p-4  text-sm mb-5">
+            <div className="flex justify-between font-medium">
+              <div className="opacity-50">Date</div>
+              <div className="text-right">
+                {new Date(transaction.createdAt).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            </div>
+            <div className="flex justify-between font-medium">
+              <div className="opacity-50">Customer</div>
+              <div className="text-right">{transaction.customerName}</div>
+            </div>
+            <div className="flex justify-between font-medium">
+              <div className="opacity-50">Contact</div>
+              <div className="text-right">{transaction.customerContact}</div>
+            </div>
+            <div className="flex justify-between gap-10 font-medium">
+              <div className="opacity-50 whitespace-nowrap">
+                Shipping Address
+              </div>
+              <div className="text-right">{transaction.customerAddress}</div>
+            </div>
+          </div>
+
+          <h4 className="font-semibold text-sm mb-2">Items Purchased</h4>
+
+          <div className="space-y-3">
+            {transaction.purchasedItems.map((item, index) => (
+              <div className="border border-gray-200 rounded-lg p-2 flex items-center gap-2">
+                <div className="bg-gray-100 rounded aspect-square w-8 h-8">
+                  <Image
+                    src={getImageUrl(item.productId.imageUrl)}
+                    width={30}
+                    height={30}
+                    alt="product image"
+                  />
                 </div>
-              </td>
-              <td className="px-6 py-4 font-medium">
-                <div className="rounded-md bg-gray-200 px-2 py-1 w-fit">
-                  {data.category}
+                <div className="font-medium text-sm">{item.productId.name}</div>
+                <div className="font-medium ml-auto text-sm">
+                  {item.qty} units
                 </div>
-              </td>
-              <td className="px-6 py-4 font-medium">
-                {priceFormatter(data.price)}
-              </td>
-              <td className="px-6 py-4 font-medium">{data.stock} units</td>
-              <td className="px-6 py-7.5 flex items-center gap-3 text-gray-600">
-                <button>
-                  <FiEdit2 size={20} />
-                </button>
-                <button>
-                  <FiTrash2 size={20} />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between  text-sm mt-6">
+            <h4 className="font-semibold">Total </h4>
+            <div className="text-primary font-semibold">
+              {priceFormatter(parseInt(transaction.totalPayment))}
+            </div>
+          </div>
+          <div className=" flex justify-end gap-5 mt-12">
+            {isUpdating ? (
+              <div className="text-center">Updating...</div>
+            ) : (
+              <>
+                <Button
+                  className="text-primary! bg-primary-light! rounded-md"
+                  size="small"
+                  onClick={() => handleStatusUpdate("rejected")}
+                  disabled={isUpdating}
+                >
+                  <FiX size={20} />
+                  Reject
+                </Button>
+                <Button
+                  className="text-white! bg-[#50C252]! rounded-md"
+                  size="small"
+                  onClick={() => handleStatusUpdate("paid")}
+                  disabled={isUpdating}
+                >
+                  <FiCheck size={20} />
+                  Approve
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </Modal>
   );
 };
 
-export default ProductTable;
+export default TransactionModal;
